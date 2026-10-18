@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Деньги Top Glass</title>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head><body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f3ef; --card:#ffffff; --card2:#f9f8f5; --line:#e7e4dc; --ink:#1b1d1a; --mute:#6f716b; --faint:#a3a49e;
+  --acc:#1f6b4f; --acc-soft:#e3f0ea; --ok:#1f8a5b; --ok-soft:#e2f3ea; --bad:#c2412d; --bad-soft:#fbe7e2; --warn:#a96a00; --warn-soft:#fbf0d9;
+  --c1:#1f6b4f; --c2:#5b8def; --c3:#d9a441;
+  --shadow:0 1px 2px rgba(20,20,10,.04),0 4px 16px rgba(20,20,10,.04);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121412; --card:#1b1e1b; --card2:#202420; --line:#2c312c; --ink:#ecede8; --mute:#9a9d95; --faint:#6b6f68;
+  --acc:#5cc497; --acc-soft:#1d3329; --ok:#5cc497; --ok-soft:#1b3328; --bad:#ff8a73; --bad-soft:#3a2420; --warn:#e8b45a; --warn-soft:#352c1a;
+  --c1:#5cc497; --c2:#7fa6ff; --c3:#e8b45a; --shadow:none; color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#121412; --card:#1b1e1b; --card2:#202420; --line:#2c312c; --ink:#ecede8; --mute:#9a9d95; --faint:#6b6f68;
+  --acc:#5cc497; --acc-soft:#1d3329; --ok:#5cc497; --ok-soft:#1b3328; --bad:#ff8a73; --bad-soft:#3a2420; --warn:#e8b45a; --warn-soft:#352c1a;
+  --c1:#5cc497; --c2:#7fa6ff; --c3:#e8b45a; --shadow:none; color-scheme:dark;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink)}
+body{font-family:Onest,system-ui,-apple-system,"Segoe UI",sans-serif;font-size:15px;line-height:1.4;-webkit-font-smoothing:antialiased}
+.num,.v{font-variant-numeric:tabular-nums}
+button{font:inherit;color:inherit;cursor:pointer}
+.wrap{max-width:720px;margin:0 auto;padding:16px max(16px,env(safe-area-inset-right,0px)) 96px max(16px,env(safe-area-inset-left,0px))}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:4px 0 16px}
+.brand{font-weight:700;font-size:18px;letter-spacing:-.01em}
+.brand small{display:block;font-weight:500;font-size:12px;color:var(--mute);letter-spacing:0}
+.seg{display:flex;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:3px}
+.seg button{border:0;background:none;padding:7px 10px;border-radius:9px;font-size:14px;color:var(--mute);font-weight:500}
+.seg button.on{background:var(--acc-soft);color:var(--acc)}
+.daynav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.daynav .d{font-weight:600;font-size:16px;text-align:center}
+.daynav .d small{display:block;color:var(--mute);font-weight:400;font-size:12px}
+.icon{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--card);display:grid;place-items:center;font-size:18px}
+.icon:disabled{opacity:.35;cursor:default}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:var(--shadow);margin-bottom:10px}
+.hero{padding:20px 20px 18px}
+.hero .lbl{color:var(--mute);font-size:13px;font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+.hero .big{font-size:40px;font-weight:700;letter-spacing:-.03em;margin:4px 0 2px;line-height:1.1}
+.hero .big span{font-size:22px;color:var(--mute);font-weight:500;margin-left:4px}
+.delta{font-size:13px;font-weight:600}
+.delta.up{color:var(--ok)} .delta.down{color:var(--bad)}
+.bar{display:flex;height:8px;border-radius:99px;overflow:hidden;margin:16px 0 10px;gap:2px}
+.bar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--mute)}
+.legend b{color:var(--ink);font-weight:600}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+details.card>summary{list-style:none;display:flex;align-items:center;gap:12px;padding:16px 18px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+details.card>summary::-webkit-details-marker{display:none}
+.s-ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;flex:none;font-size:17px;background:var(--card2);border:1px solid var(--line)}
+.s-main{flex:1;min-width:0}
+.s-t{font-size:13px;color:var(--mute);font-weight:500}
+.s-v{font-size:21px;font-weight:650;letter-spacing:-.01em}
+.chev{color:var(--faint);transition:transform .2s;font-size:14px}
+details[open] .chev{transform:rotate(90deg)}
+.body{padding:0 18px 16px;border-top:1px solid var(--line);animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:none}}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12.5px;font-weight:600;padding:4px 9px;border-radius:99px;white-space:nowrap}
+.chip.ok{background:var(--ok-soft);color:var(--ok)} .chip.bad{background:var(--bad-soft);color:var(--bad)} .chip.warn{background:var(--warn-soft);color:var(--warn)} .chip.n{background:var(--card2);color:var(--mute);border:1px solid var(--line)}
+.rows{margin-top:6px}
+.r{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.r:last-child{border-bottom:0}
+.r .k{color:var(--mute)} .r .v{font-weight:550}
+.r.tot{border-bottom:0;border-top:1px solid var(--line);margin-top:4px;padding-top:11px}
+.r.tot .k{color:var(--ink);font-weight:600}
+.sub{font-size:12px;color:var(--faint)}
+.h4{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);font-weight:600;margin:16px 0 4px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+th{font-size:12px;color:var(--faint);font-weight:500;text-align:right;padding:6px 0 6px 8px}
+th:first-child,td:first-child{text-align:left;padding-left:0}
+td{padding:8px 0 8px 8px;text-align:right;border-top:1px solid var(--line)}
+td:first-child{font-weight:550}
+.acc{padding:12px 0;border-top:1px solid var(--line)}
+.acc:first-of-type{border-top:0}
+.acc-h{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.acc-h b{font-weight:600}
+.acc-h .v{font-weight:650;font-size:18px}
+.chip.sm{font-size:11.5px;padding:2px 7px}
+.acc-d{display:grid;grid-template-columns:repeat(2,1fr);gap:2px 16px;margin-top:6px;font-size:13px;color:var(--mute)}
+.acc-d span:nth-child(even){text-align:right;color:var(--ink)}
+.note{font-size:13px;color:var(--mute);background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-top:10px}
+.note.w{background:var(--warn-soft);border-color:transparent;color:var(--warn)}
+.formula{font-size:12.5px;color:var(--faint);margin-top:8px}
+.hist .row{display:flex;align-items:center;gap:12px;padding:13px 16px;border-top:1px solid var(--line);cursor:pointer;width:100%;background:none;border-left:0;border-right:0;border-bottom:0;text-align:left}
+.hist .row:first-child{border-top:0}
+.hist .row:hover{background:var(--card2)}
+.hist .dt{width:64px;flex:none;font-weight:600}
+.hist .dt small{display:block;color:var(--faint);font-weight:400;font-size:12px}
+.hist .mid{flex:1;min-width:0}
+.hist .mid .v{font-weight:600}
+.fab{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:20px;z-index:5;border:0;background:var(--acc);color:var(--bg);font-weight:600;padding:14px 20px;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.18);font-size:15px}
+.btn{border:1px solid var(--line);background:var(--card);padding:10px 14px;border-radius:12px;font-weight:550}
+.btn.pri{background:var(--acc);color:var(--bg);border-color:transparent}
+.btn.danger{color:var(--bad)}
+.btn.sm{padding:7px 11px;font-size:13.5px}
+.empty{text-align:center;padding:40px 20px}
+.empty h2{margin:8px 0 6px;font-size:20px}
+.empty p{color:var(--mute);margin:0 0 18px}
+/* sheet */
+.sheet{position:fixed;inset:0;z-index:10;background:var(--bg);overflow:auto;display:none}
+.sheet.on{display:block}
+.sheet .top{position:sticky;top:0;background:var(--bg);z-index:2;border-bottom:1px solid var(--line)}
+.sheet .top .wrap{padding-bottom:12px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sheet h3{margin:0;font-size:17px}
+.grp{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px 16px 16px;margin-bottom:10px}
+.grp h5{margin:0 0 2px;font-size:15px}
+.grp .hint{font-size:12.5px;color:var(--mute);margin-bottom:10px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.g2{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.f label{display:block;font-size:12px;color:var(--mute);margin-bottom:4px;font-weight:500}
+.f input{width:100%;font:inherit;font-variant-numeric:tabular-nums;padding:10px 11px;border-radius:11px;border:1px solid var(--line);background:var(--card2);color:var(--ink);font-size:15px;min-width:0}
+.f input:focus{outline:2px solid var(--acc);outline-offset:-1px;background:var(--card)}
+.f input::placeholder{color:var(--faint);font-size:13px}
+.accrow{padding:10px 0;border-top:1px solid var(--line)}
+.accrow:first-of-type{border-top:0;padding-top:2px}
+.accrow b{display:block;font-size:14px;margin-bottom:6px}
+.toast{position:fixed;left:50%;bottom:86px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;font-size:14px;z-index:20;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90vw}
+.toast.on{opacity:1}
+.muted{color:var(--mute)}
+@media (max-width:420px){.hero .big{font-size:34px}.g3{gap:8px}.f input{padding:9px}}
+.hidden{display:none!important}
+#gate{position:fixed;inset:0;z-index:30;background:var(--bg);display:flex;align-items:center;justify-content:center}
+</style>
+
+<div class="wrap" id="root">
+  <header>
+    <div class="brand">Деньги<small>Top Glass · Актобе</small></div>
+    <div class="seg" id="tabs"><button data-t="day" class="on">День</button><button data-t="rep">Отчёт</button><button data-t="hist">История</button></div>
+  </header>
+  <div id="view"><div class="empty"><p class="muted">Загрузка…</p></div></div>
+</div>
+<button class="fab" id="fab" hidden>+ Внести день</button>
+<div class="sheet" id="sheet"></div>
+<div class="toast" id="toast"></div>
+<div id="gate" class="hidden"><div class="card" style="width:min(360px,90vw);padding:28px;text-align:center"><div class="brand">Деньги</div><p class="muted" style="font-size:14px">Введите пароль — устройство запомнит его.</p><div class="f"><input type="password" id="gate-pw" placeholder="Пароль" onkeydown="if(event.key==='Enter')gateLogin()"></div><div id="gate-err" style="color:var(--bad);font-size:13px;min-height:18px;margin:6px 0"></div><button class="btn pri" style="width:100%" onclick="gateLogin()">Войти</button></div></div>
+<div class="wrap" style="padding-top:0;padding-bottom:0;margin-top:-80px"><div id="cl" class="sub" style="text-align:center;padding-bottom:90px"></div></div>
+
+
+
+
+<script>
+const STORES=[["zg","ЖГ"],["ks","КС"],["ac","АЦ"],["shr","ШР"],["hbk","ХБК"],["vokz","ВОКЗ"],["hrom","ХРОМ"],["oral","ОРАЛ"],["ast","АСТ"]];
+const SN=Object.fromEntries(STORES);
+const ACC=[
+  {k:"din",n:"Динара пей",src:["ks","hrom"]},
+  {k:"ayz",n:"Айзада пей",src:["ac","vokz","ast"]},
+  {k:"ayt",n:"Айтолкын пей",src:["shr"]},
+  {k:"apa",n:"Апа халык",src:[],hal:true},
+  {k:"pet",n:"Дядь Петя",src:["zg","hbk","oral"]},
+];
+const COMM=0.85; // комиссия банка на безнал, %
+const MON=["января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря"];
+const WD=["вс","пн","вт","ср","чт","пт","сб"];
+
+let db={}, canWrite=true, docs={}, rows=[], sel=-1, tab="day", openSet=new Set(), loaded=false;
+
+const has=v=>typeof v==="number"&&isFinite(v);
+const n=v=>has(v)?v:0;
+const sum=a=>a.reduce((s,x)=>s+n(x),0);
+const fmt=v=>Math.round(v).toLocaleString("ru-RU").replace(/-/,"−");
+const sgn=v=>(v>0?"+":"")+fmt(v);
+function dParts(id){const [y,m,d]=id.split("-").map(Number);const dt=new Date(y,m-1,d);return {d,m:MON[m-1],wd:WD[dt.getDay()],short:String(d).padStart(2,"0")+"."+String(m).padStart(2,"0")}}
+function toast(t){const e=document.getElementById("toast");e.textContent=t;e.classList.add("on");clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove("on"),2600)}
+
+function chipCheck(v,okText){
+  if(v===null) return '<span class="chip n">нет выручки</span>';
+  if(Math.abs(v)<1) return `<span class="chip ok">✓ ${okText||"сходится"}</span>`;
+  return v<0?`<span class="chip bad">${fmt(v)}</span>`:`<span class="chip warn">+${fmt(v)}</span>`;
+}
+
+/* ---------- расчёт ---------- */
+function compute(){
+  const st=docs.start||{};
+  let pc={}; STORES.forEach(([k])=>pc[k]=n(st.cash?.[k]));
+  let pa={}; ACC.forEach(a=>pa[a.k]=n(st.acc?.[a.k]));
+  let pDiv=n(st.divEnd);
+  const ids=Object.keys(docs).filter(k=>/^\d{4}-\d\d-\d\d$/.test(k)).sort();
+  const out=[];
+  const startTotal=sum(Object.values(pc))+sum(Object.values(pa))+pDiv;
+  let prevTotal=has(st.divEnd)||st.cash||st.acc?startTotal:null;
+  for(const id of ids){
+    const d=docs[id];
+    const cs={},ac={},bn={},e={},p={};
+    STORES.forEach(([k])=>{cs[k]=has(d.cash?.[k])?d.cash[k]:pc[k]; bn[k]=n(d.bn?.[k]);});
+    ACC.forEach(a=>{ac[a.k]=has(d.acc?.[a.k])?d.acc[a.k]:pa[a.k]; e[a.k]=n(d.exp?.[a.k]); p[a.k]=n(d.pay?.[a.k]);});
+    const cashT=sum(Object.values(cs)), pCashT=sum(Object.values(pc));
+    const accT=sum(Object.values(ac)), pAccT=sum(Object.values(pa));
+    const hal=n(d.hal), bnS=sum(Object.values(bn)), bnT=bnS+hal;
+    const expLeg=n(d.expLegacy), payLeg=n(d.payLegacy);
+    const expT=sum(Object.values(e))+expLeg, payT=sum(Object.values(p))+payLeg;
+    const kass=n(d.kass), disc=n(d.disc);
+    const revNal=cashT-pCashT+kass;
+    const check=has(d.rev)?revNal+bnT+disc-d.rev:null;
+    const per=ACC.map(a=>{
+      const exp=a.hal?hal:sum(a.src.map(s=>bn[s]));
+      const comm=Math.round(exp*COMM/100);
+      return {...a,bal:ac[a.k],prev:pa[a.k],d:ac[a.k]-pa[a.k],exp,e:e[a.k],p:p[a.k],comm,chk:ac[a.k]-pa[a.k]+e[a.k]+p[a.k]-exp+comm};
+    });
+    const commT=sum(per.map(q=>q.comm));
+    const accVsBn=accT-pAccT+expT+payT-bnT+commT;
+    const divStart=pDiv, divEnd=has(d.divEnd)?d.divEnd:divStart+kass+payT, divSpent=divStart+kass+payT-divEnd;
+    const total=cashT+divEnd+accT;
+    out.push({id,d,cs,pc:{...pc},cashT,pCashT,accT,pAccT,bn,hal,bnT,expT,payT,expLeg,payLeg,kass,disc,rev:has(d.rev)?d.rev:null,revNal,check,accVsBn,commT,per,divStart,divEnd,divSpent,total,prevTotal});
+    pc=cs; pa=ac; pDiv=divEnd; prevTotal=total;
+  }
+  return out;
+}
+
+/* ---------- отрисовка ---------- */
+function render(){
+  rows=compute();
+  if(sel<0||sel>=rows.length) sel=rows.length-1;
+  document.getElementById("fab").hidden=!canWrite||!db;
+  const v=document.getElementById("view");
+  
+  if(!loaded){return}
+  if(tab==="hist") return renderHist(v);
+  if(tab==="rep") return renderRep(v);
+  if(!rows.length){
+    v.innerHTML=`<div class="card empty"><div style="font-size:34px">₸</div><h2>Пока нет ни одного дня</h2><p>Сначала внесите остатки на начало месяца, затем первый день.</p>
+    ${canWrite?`<button class="btn" onclick="openStart()">Начало месяца</button> <button class="btn pri" onclick="openForm()">Внести день</button>`:""}</div>`;
+    return;
+  }
+  renderDay(v,rows[sel]);
+}
+
+function sec(id,ic,title,val,right,body){
+  return `<details class="card" data-id="${id}" ${openSet.has(id)?"open":""}><summary><div class="s-ic">${ic}</div><div class="s-main"><div class="s-t">${title}</div><div class="s-v num">${val}</div></div>${right||""}<span class="chev">›</span></summary><div class="body">${body}</div></details>`;
+}
+const R=(k,v,cls="")=>`<div class="r ${cls}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+
+function renderDay(v,x){
+  const P=dParts(x.id);
+  const dlt=x.prevTotal===null?"":`<span class="delta ${x.total-x.prevTotal>=0?"up":"down"}">${x.total-x.prevTotal>=0?"▲":"▼"} ${sgn(x.total-x.prevTotal)} ₸ за день</span>`;
+  const tot=Math.max(1,x.cashT+Math.max(0,x.divEnd)+x.accT);
+  const w=a=>(Math.max(0,a)/tot*100).toFixed(2)+"%";
+
+  // выручка
+  const storeTbl=`<table><tr><th>Магазин</th><th>В кассе</th><th>Нал за день</th><th>Б/н</th></tr>${STORES.map(([k,nm])=>`<tr><td>${nm}</td><td>${fmt(x.cs[k])}</td><td>${sgn(x.cs[k]-x.pc[k])}</td><td>${fmt(x.bn[k])}</td></tr>`).join("")}<tr><td>Халык (Апа)</td><td></td><td></td><td>${fmt(x.hal)}</td></tr></table>`;
+  const revBody=`<div class="rows">
+    ${R("Наличка за день",fmt(x.revNal))}
+    ${R("Безнал (терминалы + Халык)",fmt(x.bnT))}
+    ${R("Скидки",fmt(x.disc))}
+    ${R("Итого по факту",fmt(x.revNal+x.bnT+x.disc),"tot")}
+    ${R("По программе",x.rev===null?"—":fmt(x.rev))}
+    ${R("Разница",x.check===null?"—":chipCheck(x.check))}
+  </div>
+  <div class="formula">Наличка за день = касса сегодня − касса вчера (${fmt(x.cashT)} − ${fmt(x.pCashT)})${x.kass?` + дивиденды с касс ${fmt(x.kass)}`:""}</div>
+  <div class="h4">По магазинам</div>${storeTbl}`;
+
+  // наличка
+  const cashBody=`<table><tr><th>Магазин</th><th>Сейчас</th><th>Вчера</th><th>±</th></tr>${STORES.map(([k,nm])=>`<tr><td>${nm}</td><td>${fmt(x.cs[k])}</td><td class="muted">${fmt(x.pc[k])}</td><td>${sgn(x.cs[k]-x.pc[k])}</td></tr>`).join("")}</table>
+  ${x.kass?`<div class="note">Из касс взяли дивиденды: <b class="num">${fmt(x.kass)}</b> ₸</div>`:""}`;
+
+  // счета
+  const legacy=x.expLeg||x.payLeg;
+  const accBody=`${x.per.map(a=>`<div class="acc"><div class="acc-h"><b>${a.n}</b><span class="v num">${fmt(a.bal)}</span></div>
+    <div class="acc-d"><span>Безнал <span class="sub">${a.hal?"Халык":a.src.map(s=>SN[s]).join("+")}</span></span><span class="num">${fmt(a.exp)}</span>
+    <span>Комиссия ${String(COMM).replace('.',',')}%</span><span class="num">−${fmt(a.comm)}</span>
+    <span style="color:var(--ink)">Должно прийти</span><span class="num" style="font-weight:600">${fmt(a.exp-a.comm)}</span>
+    <span>Пришло на счёт</span><span class="num">${sgn(a.d)}</span>
+    ${a.e?`<span>+ расход со счёта</span><span class="num">${fmt(a.e)}</span>`:""}${a.p?`<span>+ дивиденд (с пей)</span><span class="num">${fmt(a.p)}</span>`:""}
+    <span style="color:var(--ink)">Разница</span><span>${chipCheck(a.chk,"ок").replace('class="chip','class="chip sm')}</span></div></div>`).join("")}
+    ${legacy?`<div class="note w">Записано общей суммой, не по счетам: ${x.expLeg?`расходы ${fmt(x.expLeg)}`:""}${x.expLeg&&x.payLeg?", ":""}${x.payLeg?`с пей ${fmt(x.payLeg)}`:""}. Поэтому проверка по счетам выше неточная — разбейте суммы в «Изменить день».</div>`:""}
+    <div class="h4">Всё вместе</div><div class="rows">
+    ${R("Изменение счетов",sgn(x.accT-x.pAccT))}${R("+ расходы со счетов",fmt(x.expT))}${R("+ дивиденды с пей",fmt(x.payT))}${R("− безнал минус комиссия",fmt(x.bnT-x.commT))}${R("Счета vs б/н",chipCheck(x.accVsBn,"сходится"),"tot")}</div>
+    <div class="formula">Разница = пришло на счёт + расход + дивиденд − должно прийти</div>`;
+
+  // дивиденды
+  const divBody=`<div class="rows">${R("Начало дня",fmt(x.divStart))}${R("+ с касс",fmt(x.kass))}${R("+ с пей",fmt(x.payT))}${R("− потратили",fmt(x.divSpent))}${R("Конец дня",fmt(x.divEnd),"tot")}</div>`;
+
+  v.innerHTML=`
+  <div class="daynav"><button class="icon" id="prev" ${sel<=0?"disabled":""} aria-label="Предыдущий день">‹</button>
+    <div class="d">${P.d} ${P.m}<small>${P.wd}${sel===rows.length-1?" · последний внесённый":""}</small></div>
+    <button class="icon" id="next" ${sel>=rows.length-1?"disabled":""} aria-label="Следующий день">›</button></div>
+  <div class="card hero"><div class="lbl">Всего денег</div><div class="big num">${fmt(x.total)}<span>₸</span></div>${dlt}
+    <div class="bar"><i style="width:${w(x.cashT)};background:var(--c1)"></i><i style="width:${w(x.accT)};background:var(--c2)"></i><i style="width:${w(x.divEnd)};background:var(--c3)"></i></div>
+    <div class="legend"><span><i class="dot" style="background:var(--c1)"></i>Наличка <b class="num">${fmt(x.cashT)}</b></span><span><i class="dot" style="background:var(--c2)"></i>Счета <b class="num">${fmt(x.accT)}</b></span><span><i class="dot" style="background:var(--c3)"></i>Дивиденды <b class="num">${fmt(x.divEnd)}</b></span></div>
+  </div>
+  ${sec("rev","📈","Выручка за день",x.rev===null?"—":fmt(x.rev),chipCheck(x.check),revBody)}
+  ${sec("cash","💵","Наличка в кассах",fmt(x.cashT),`<span class="chip n">${sgn(x.cashT-x.pCashT)}</span>`,cashBody)}
+  ${sec("acc","🏦","Счета всего",fmt(x.accT),chipCheck(x.accVsBn),accBody)}
+  ${sec("div","🪙","Дивиденды на конец дня",fmt(x.divEnd),x.divSpent?`<span class="chip n">−${fmt(x.divSpent)}</span>`:"",divBody)}
+  ${canWrite?`<div style="display:flex;gap:8px;margin-top:14px"><button class="btn" onclick="openForm('${x.id}')">Изменить этот день</button></div>`:""}
+  `;
+  v.querySelectorAll("details").forEach(dt=>dt.addEventListener("toggle",()=>{dt.open?openSet.add(dt.dataset.id):openSet.delete(dt.dataset.id)}));
+  document.getElementById("prev").onclick=()=>{sel--;render()};
+  document.getElementById("next").onclick=()=>{sel++;render()};
+}
+
+function renderHist(v){
+  const st=docs.start;
+  const list=rows.slice().reverse().map(x=>{const P=dParts(x.id);const i=rows.indexOf(x);
+    return `<button class="row" data-i="${i}"><div class="dt">${P.short}<small>${P.wd}</small></div><div class="mid"><div class="v num">${fmt(x.total)} ₸</div><div class="sub num">выручка ${x.rev===null?"—":fmt(x.rev)}</div></div>${chipCheck(x.check)}</button>`}).join("");
+  v.innerHTML=`<div class="card hist">${list||'<div class="empty"><p>Дней пока нет</p></div>'}</div>
+  <div class="card" style="padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:10px">
+    <div><div style="font-weight:600">Начало месяца</div><div class="sub num">${st?`наличка ${fmt(sum(Object.values(st.cash||{})))} · счета ${fmt(sum(Object.values(st.acc||{})))} · дивиденды ${fmt(n(st.divEnd))}`:"не заполнено"}</div></div>
+    ${canWrite?`<button class="btn sm" onclick="openStart()">${st?"Изменить":"Заполнить"}</button>`:""}</div>`;
+  v.querySelectorAll(".row").forEach(b=>b.onclick=()=>{sel=+b.dataset.i;setTab("day")});
+}
+
+/* ---------- отчёт по декадам ---------- */
+function flow(x){
+  const R=x.rev!==null?x.rev:x.revNal+x.bnT+x.disc;
+  const start=x.prevTotal===null?x.total:x.prevTotal;
+  const spent=start+R-x.total;
+  const unexp=spent-x.expT-x.divSpent-x.disc-x.commT;
+  return {start,R,end:x.total,spent,acc:x.expT,div:x.divSpent,disc:x.disc,comm:x.commT,unexp};
+}
+function unexpChip(u){
+  if(Math.abs(u)<1) return '<span class="chip ok">✓ всё объяснено</span>';
+  return u>0?`<span class="chip bad">${fmt(u)} не объяснено</span>`:`<span class="chip warn">+${fmt(-u)} лишние</span>`;
+}
+function renderRep(v){
+  if(!rows.length){v.innerHTML='<div class="card empty"><p>Дней пока нет</p></div>';return}
+  const groups=[];
+  rows.forEach((x,i)=>{const [y,m,d]=x.id.split("-").map(Number);const dec=d<=10?0:d<=20?1:2;const key=`${y}-${m}-${dec}`;
+    let g=groups.find(g=>g.key===key); if(!g){g={key,y,m,dec,items:[]};groups.push(g)} g.items.push({x,i,f:flow(x)});});
+  const lbl=["01–10","11–20","21–31"];
+  let html='<div class="note" style="margin:0 0 10px">Расходы = начало + выручка − конец. Объяснённые: расходы со счетов, траты из дивидендов, скидки и комиссия банка. Остальное — «не объяснено».</div>';
+  let curM="";
+  groups.slice().reverse().forEach(g=>{
+    const mm=MON[g.m-1].replace(/я$/,"ь").replace(/та$/,"т").replace(/ая$/,"ай");
+    const mName={1:"Январь",2:"Февраль",3:"Март",4:"Апрель",5:"Май",6:"Июнь",7:"Июль",8:"Август",9:"Сентябрь",10:"Октябрь",11:"Ноябрь",12:"Декабрь"}[g.m];
+    if(curM!==g.y+"-"+g.m){curM=g.y+"-"+g.m;html+=`<div class="h4" style="margin:14px 2px 8px">${mName} ${g.y}</div>`}
+    const it=g.items, s=k=>it.reduce((a,b)=>a+b.f[k],0);
+    const P={start:it[0].f.start,end:it[it.length-1].f.end,R:s("R"),spent:s("spent"),acc:s("acc"),div:s("div"),disc:s("disc"),comm:s("comm"),unexp:s("unexp")};
+    const id="rep-"+g.key;
+    const days=it.slice().reverse().map(({x,i,f})=>{const D=dParts(x.id);return `<button class="row" data-i="${i}"><div class="dt">${D.short}<small>${D.wd}</small></div><div class="mid"><div class="v num">${fmt(f.start)} → ${fmt(f.end)}</div><div class="sub num">выручка +${fmt(f.R)} · расходы −${fmt(f.spent)}</div></div>${Math.abs(f.unexp)<1?'<span class="chip ok">✓</span>':f.unexp>0?`<span class="chip bad">${fmt(f.unexp)}</span>`:`<span class="chip warn">+${fmt(-f.unexp)}</span>`}</button>`}).join("");
+    const body=`<div class="rows">${R("Деньги на начало",fmt(P.start))}${R("+ Выручка",fmt(P.R))}${R("− Расходы всего",fmt(P.spent))}
+      <div style="padding:2px 0 6px 14px;border-left:2px solid var(--line);margin:2px 0 4px">${R("со счетов",fmt(P.acc))}${R("из дивидендов",fmt(P.div))}${R("скидки",fmt(P.disc))}${R("комиссия банка",fmt(P.comm))}${R("не объяснено",unexpChip(P.unexp))}</div>
+      ${R("Деньги на конец",fmt(P.end),"tot")}</div>
+      <div class="h4">По дням</div><div class="hist" style="margin:0 -18px -16px">${days}</div>`;
+    html+=`<details class="card" data-id="${id}" ${openSet.has(id)?"open":""}><summary><div class="s-ic num" style="font-size:12px;font-weight:600">${lbl[g.dec]}</div><div class="s-main"><div class="s-t num">${fmt(P.start)} → ${fmt(P.end)}</div><div class="s-v num" style="font-size:17px">выручка ${fmt(P.R)}</div></div>${unexpChip(P.unexp)}<span class="chev">›</span></summary><div class="body">${body}</div></details>`;
+  });
+  v.innerHTML=html;
+  v.querySelectorAll("details").forEach(dt=>dt.addEventListener("toggle",()=>{dt.open?openSet.add(dt.dataset.id):openSet.delete(dt.dataset.id)}));
+  v.querySelectorAll(".row").forEach(b=>b.onclick=()=>{sel=+b.dataset.i;setTab("day")});
+}
+
+function setTab(t){tab=t;document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("on",b.dataset.t===t));render();window.scrollTo(0,0)}
+document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>setTab(b.dataset.t));
+
+/* ---------- формы ---------- */
+const sheet=document.getElementById("sheet");
+const fld=(name,label,val,ph="")=>`<div class="f"><label>${label}</label><input inputmode="numeric" autocomplete="off" name="${name}" value="${has(val)?fmt(val).replace("−","-"):""}" placeholder="${ph}"></div>`;
+function parseNum(s){s=String(s).replace(/[\s  ]/g,"").replace("−","-").replace(",",".");if(s==="")return undefined;const v=Number(s);return isFinite(v)?Math.round(v):NaN}
+function closeSheet(){sheet.classList.remove("on");sheet.innerHTML="";document.body.style.overflow=""}
+
+function nextDate(){
+  const ids=rows.map(r=>r.id);if(!ids.length){const t=new Date();return t.toISOString().slice(0,10)}
+  const [y,m,d]=ids[ids.length-1].split("-").map(Number);const dt=new Date(Date.UTC(y,m-1,d+1));return dt.toISOString().slice(0,10);
+}
+
+function openForm(id){
+  const isNew=!id; const d=id?docs[id]:{}; const date=id||nextDate();
+  const r=id?rows.find(x=>x.id===id):rows[rows.length-1];
+  const prevCash=k=>{const x=id?r.pc[k]:r?.cs[k];return has(x)?"было "+fmt(x):""};
+  const prevAcc=k=>{if(!r)return"";const a=r.per.find(p=>p.k===k);const x=id?a.prev:a.bal;return "было "+fmt(x)};
+  const legacy=n(d.expLegacy)||n(d.payLegacy);
+  sheet.innerHTML=`<div class="top"><div class="wrap"><button class="btn sm" id="cancel">Отмена</button><h3>${isNew?"Новый день":"Изменить день"}</h3><button class="btn sm pri" id="save">Сохранить</button></div></div>
+  <div class="wrap" style="padding-bottom:40px"><form id="frm" onsubmit="return false">
+   <div class="grp"><h5>Выручка</h5><div class="hint">Из программы и от продавцов</div>
+     <div class="g2"><div class="f"><label>Дата</label><input type="date" name="date" value="${date}"></div>${fld("rev","Выручка за день",d.rev)}${fld("disc","Скидки",d.disc)}</div></div>
+   <div class="grp"><h5>Наличка в кассах</h5><div class="hint">Пересчёт: сколько сейчас лежит в каждой кассе</div>
+     <div class="g3">${STORES.map(([k,nm])=>fld("cash."+k,nm,d.cash?.[k],prevCash(k))).join("")}</div></div>
+   <div class="grp"><h5>Безнал по магазинам</h5><div class="hint">Терминалы за день + Халык Апы</div>
+     <div class="g3">${STORES.map(([k,nm])=>fld("bn."+k,nm,d.bn?.[k])).join("")}${fld("hal","Халык (Апа)",d.hal)}</div></div>
+   <div class="grp"><h5>Счета</h5><div class="hint">Остаток из банка, расход со счёта и дивиденды, снятые с этого счёта</div>
+     ${legacy?`<div class="note w" style="margin:0 0 10px">Сейчас записано общей суммой: ${d.expLegacy?`расходы ${fmt(d.expLegacy)}`:""}${d.expLegacy&&d.payLegacy?", ":""}${d.payLegacy?`с пей ${fmt(d.payLegacy)}`:""}. Если впишете суммы по счетам — общая сумма уберётся.</div>`:""}
+     ${ACC.map(a=>`<div class="accrow"><b>${a.n}</b><div class="g3">${fld("acc."+a.k,"Остаток",d.acc?.[a.k],prevAcc(a.k))}${fld("exp."+a.k,"Расход",d.exp?.[a.k])}${fld("pay."+a.k,"Дивиденд",d.pay?.[a.k])}</div></div>`).join("")}</div>
+   <div class="grp"><h5>Дивиденды</h5><div class="hint">«С пей» берётся из счетов выше</div>
+     <div class="g2">${fld("kass","+ с касс",d.kass)}${fld("divEnd","Конец дня",d.divEnd,"если пусто — без расходов")}</div></div>
+   ${!isNew?`<div style="margin-top:18px"><button type="button" class="btn danger" id="del">Удалить день</button></div>`:""}
+  </form></div>`;
+  sheet.classList.add("on");document.body.style.overflow="hidden";sheet.scrollTop=0;
+  document.getElementById("cancel").onclick=closeSheet;
+  document.getElementById("save").onclick=()=>saveDay(id,d);
+  const del=document.getElementById("del");
+  if(del) del.onclick=async()=>{
+    if(!del.dataset.sure){del.dataset.sure=1;del.textContent="Точно удалить? Нажмите ещё раз";return}
+    try{await db.doc("days/"+id).delete();closeSheet();sel=-1;toast("День удалён")}catch(e){toast("Не удалось удалить")}
+  };
+}
+
+function readForm(){
+  const o={},bad=[];
+  document.querySelectorAll("#frm input").forEach(inp=>{
+    if(inp.name==="date"){o.date=inp.value;return}
+    const v=parseNum(inp.value); if(v===undefined)return; if(isNaN(v)){bad.push(inp);return}
+    const [a,b]=inp.name.split("."); if(b){(o[a]=o[a]||{})[b]=v}else o[a]=v;
+  });
+  bad.forEach(i=>i.style.outline="2px solid var(--bad)");
+  return bad.length?null:o;
+}
+
+async function saveDay(oldId,old){
+  const o=readForm(); if(!o){toast("Проверьте выделенные поля");return}
+  const id=o.date; delete o.date;
+  if(!/^\d{4}-\d\d-\d\d$/.test(id)){toast("Укажите дату");return}
+  if(id!==oldId&&docs[id]){toast("Этот день уже есть — откройте его через историю");return}
+  // старые общие суммы: оставляем, пока не разбиты
+  if(old.expLegacy&&!o.exp) o.expLegacy=old.expLegacy;
+  if(old.payLegacy&&!o.pay) o.payLegacy=old.payLegacy;
+  const btn=document.getElementById("save");btn.disabled=true;btn.textContent="Сохраняю…";
+  try{
+    await db.doc("days/"+id).set(o);
+    if(oldId&&oldId!==id) await db.doc("days/"+oldId).delete();
+    docs[id]=o; if(oldId&&oldId!==id) delete docs[oldId];
+    rows=compute(); sel=rows.findIndex(r=>r.id===id); closeSheet(); setTab("day"); toast("Сохранено");
+  }catch(e){btn.disabled=false;btn.textContent="Сохранить";
+    if(e?.code==="invalid_argument"){canWrite=false;toast("Нет прав на изменение");closeSheet();render()}
+    else toast("Не удалось сохранить, попробуйте ещё раз");}
+}
+
+function openStart(){
+  const d=docs.start||{};
+  sheet.innerHTML=`<div class="top"><div class="wrap"><button class="btn sm" id="cancel">Отмена</button><h3>Начало месяца</h3><button class="btn sm pri" id="save">Сохранить</button></div></div>
+  <div class="wrap" style="padding-bottom:40px"><form id="frm" onsubmit="return false">
+   <div class="grp"><h5>Наличка в кассах</h5><div class="g3">${STORES.map(([k,nm])=>fld("cash."+k,nm,d.cash?.[k])).join("")}</div></div>
+   <div class="grp"><h5>Остатки на счетах</h5><div class="g2">${ACC.map(a=>fld("acc."+a.k,a.n,d.acc?.[a.k])).join("")}</div></div>
+   <div class="grp"><h5>Дивиденды</h5><div class="g2">${fld("divEnd","Остаток дивидендов",d.divEnd)}</div></div>
+  </form></div>`;
+  sheet.classList.add("on");document.body.style.overflow="hidden";
+  document.getElementById("cancel").onclick=closeSheet;
+  document.getElementById("save").onclick=async()=>{
+    const o=readForm(); if(!o){toast("Проверьте выделенные поля");return} delete o.date;
+    try{await db.doc("days/start").set(o);docs.start=o;closeSheet();render();toast("Сохранено")}catch(e){toast("Не удалось сохранить")}
+  };
+}
+
+document.getElementById("fab").onclick=()=>openForm();
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&sheet.classList.contains("on"))closeSheet()});
+
+/* ---------- данные: Firebase-облако + копия в браузере ---------- */
+const FIREBASE_CONFIG={apiKey:"AIzaSyCPCSRH532mYdyKqaBG9mgQUgz15LKkO7s",authDomain:"topglass-finance.firebaseapp.com",projectId:"topglass-finance",storageBucket:"topglass-finance.firebasestorage.app",messagingSenderId:"532546459271",appId:"1:532546459271:web:ee82976cd865848865ca22"};
+const CLOUD_EMAIL="owner@topglass.app";
+const LKEY="topglass-dengi-v1";
+const SEED={"start":{"cash":{"zg":54400,"ks":75685,"ac":19730,"shr":31220,"hbk":69350,"vokz":106701,"hrom":34950,"oral":49600,"ast":70990},"acc":{"din":633599,"ayz":1199409,"ayt":1472895,"apa":363334,"pet":874748},"divEnd":1233003},"2026-10-01":{"rev":841000,"disc":7060,"cash":{"zg":89220,"ks":99870,"ac":45270,"shr":81940,"hbk":82840,"vokz":136521,"hrom":49225,"oral":77400,"ast":81700},"bn":{"zg":42040,"ks":54580,"ac":92810,"shr":143040,"hbk":27030,"vokz":29190,"hrom":40735,"oral":22790,"ast":74510},"hal":77600,"acc":{"din":726000,"ayz":1332461,"ayt":1262653,"apa":434943,"pet":213774},"divEnd":219106,"expLegacy":1165782},"2026-10-02":{"rev":809000,"disc":7024,"cash":{"zg":131600,"ks":132570,"ac":89620,"shr":136125,"hbk":86600,"vokz":55835,"hrom":62455,"oral":95380,"ast":93210},"bn":{"zg":53140,"ks":34235,"ac":63700,"shr":113856,"hbk":35610,"vokz":44980,"hrom":35480,"oral":45430,"ast":65000},"hal":73110,"acc":{"din":795100,"ayz":1476000,"ayt":1375417,"apa":504674,"pet":346851},"divEnd":167344,"expLegacy":30000,"kass":100000},"2026-10-03":{"rev":949040,"disc":7673,"cash":{"zg":160180,"ks":158425,"ac":129170,"shr":200845,"hbk":102810,"vokz":83755,"hrom":86680,"oral":116620,"ast":114030},"bn":{"zg":56910,"ks":57787,"ac":92050,"shr":172530,"hbk":26830,"vokz":28620,"hrom":32440,"oral":27850,"ast":140640},"hal":43770,"acc":{"din":884500,"ayz":1335000,"ayt":146292,"apa":548147,"pet":457300},"divEnd":183660,"payLegacy":1800000},"2026-10-04":{"rev":912960,"disc":7810,"cash":{"zg":202620,"ks":191815,"ac":176590,"shr":284140,"hbk":119205,"vokz":99965,"hrom":100125,"oral":32230,"ast":15420},"bn":{"zg":99700,"ks":72170,"ac":60070,"shr":125650,"hbk":40285,"vokz":31870,"hrom":48430,"oral":36810,"ast":67090},"hal":29670,"acc":{"din":1003900,"ayz":1402000,"ayt":260735,"apa":577612,"pet":632400},"divEnd":378561,"expLegacy":90000,"kass":230000},"2026-10-05":{"rev":752050,"disc":8776,"cash":{"zg":242590,"ks":250305,"ac":200480,"shr":340300,"hbk":129325,"vokz":114055,"hrom":111410,"oral":43740,"ast":26920},"bn":{"zg":41280,"ks":65212,"ac":33540,"shr":110812,"hbk":31850,"vokz":35490,"hrom":21930,"oral":36830,"ast":44980},"hal":83330,"acc":{"din":1090000,"ayz":1515000,"ayt":370494,"apa":658642,"pet":741600},"divEnd":345961},"2026-10-06":{"rev":860850,"disc":4688,"cash":{"zg":36880,"ks":263815,"ac":233800,"shr":425880,"hbk":137425,"vokz":138125,"hrom":137860,"oral":68770,"ast":42240},"bn":{"zg":41520,"ks":83020,"ac":63170,"shr":125940,"hbk":52430,"vokz":31340,"hrom":46780,"oral":32250,"ast":72992},"hal":62440,"acc":{"din":1218000,"ayz":1681000,"ayt":495231,"apa":719677,"pet":871500},"divEnd":434383,"kass":220000},"2026-10-07":{"rev":1004680,"disc":12112,"cash":{"zg":92970,"ks":77455,"ac":17890,"shr":38360,"hbk":23955,"vokz":22445,"hrom":153950,"oral":103380,"ast":45020},"bn":{"zg":81152,"ks":88596,"ac":72050,"shr":118280,"hbk":51580,"vokz":35760,"hrom":69590,"oral":26990,"ast":65120},"hal":101850,"acc":{"din":1375000,"ayz":1822000,"ayt":612374,"apa":764100,"pet":1029600},"divEnd":1624383,"expLegacy":33500,"kass":1195000},"2026-10-08":{"rev":969010,"disc":12164,"cash":{"zg":127410,"ks":133305,"ac":45290,"shr":94370,"hbk":61545,"vokz":47845,"hrom":169640,"oral":134535,"ast":59440},"bn":{"zg":54910,"ks":86121,"ac":66530,"shr":153600,"hbk":37550,"vokz":42500,"hrom":62140,"oral":33750,"ast":47200},"hal":75257,"acc":{"din":1522300,"ayz":1936000,"ayt":764441,"apa":887010,"pet":1154600},"divEnd":1576148,"expLegacy":40000},"2026-10-09":{"rev":1024980,"disc":11139,"cash":{"zg":162280,"ks":160015,"ac":81390,"shr":175360,"hbk":74005,"vokz":79095,"hrom":204925,"oral":158240,"ast":84120},"bn":{"zg":71340,"ks":94530,"ac":58570,"shr":154190,"hbk":39360,"vokz":35970,"hrom":54540,"oral":29100,"ast":113500},"hal":53500,"acc":{"din":1669991,"ayz":2112000,"ayt":917161,"apa":937015,"pet":1213100},"divEnd":1558791,"expLegacy":110000},"2026-10-10":{"rev":1299840,"disc":19509,"cash":{"zg":32800,"ks":82095,"ac":30735,"shr":77335,"hbk":24675,"vokz":14905,"hrom":17775,"oral":27400,"ast":30970},"bn":{"zg":62710,"ks":123302,"ac":101720,"shr":188110,"hbk":33650,"vokz":42320,"hrom":70820,"oral":68030,"ast":98190},"hal":94150,"acc":{"din":123000,"ayz":355000,"ayt":103474,"apa":30302,"pet":1375900},"divEnd":1017695,"expLegacy":21250,"kass":1243000,"payLegacy":5644771},"2026-10-11":{"rev":1379740,"disc":10286,"cash":{"zg":81980,"ks":51545,"ac":87340,"shr":207275,"hbk":62965,"vokz":35695,"hrom":53840,"oral":67600,"ast":53080},"bn":{"zg":76325,"ks":152815,"ac":104920,"shr":199240,"hbk":36570,"vokz":36190,"hrom":58510,"oral":73910,"ast":133090},"hal":59776,"acc":{"din":332570,"ayz":627000,"ayt":300805,"apa":89680,"pet":1560800},"divEnd":996024,"kass":60000},"2026-10-12":{"rev":1200950,"disc":9694,"cash":{"zg":117230,"ks":87605,"ac":148150,"shr":311125,"hbk":75540,"vokz":71885,"hrom":68480,"oral":82325,"ast":61460},"bn":{"zg":106390,"ks":96167,"ac":68040,"shr":147790,"hbk":52870,"vokz":34640,"hrom":34900,"oral":46735,"ast":160370},"hal":115990,"acc":{"din":462385,"ayz":887000,"ayt":447100,"apa":199393,"pet":1764800},"divEnd":977763},"2026-10-13":{"rev":1132660,"disc":12927,"cash":{"zg":36610,"ks":81080,"ac":191495,"shr":410600,"hbk":80890,"vokz":114090,"hrom":107330,"oral":109235,"ast":72340},"bn":{"zg":73200,"ks":104745,"ac":53920,"shr":139510,"hbk":21910,"vokz":57940,"hrom":85670,"oral":30040,"ast":123970},"hal":84180,"acc":{"din":650900,"ayz":1059000,"ayt":585000,"apa":277719,"pet":1888000},"divEnd":960501,"expLegacy":61600,"kass":170000},"2026-10-14":{"rev":1007500,"disc":10703,"cash":{"zg":84440,"ks":108665,"ac":15915,"shr":45640,"hbk":95100,"vokz":31350,"hrom":41110,"oral":132471,"ast":71330},"bn":{"zg":53032,"ks":73010,"ac":85280,"shr":126927,"hbk":48363,"vokz":43330,"hrom":49570,"oral":45770,"ast":99550},"hal":75470,"acc":{"din":750722,"ayz":1256000,"ayt":672000,"apa":352600,"pet":1995000},"divEnd":975711,"expLegacy":131200,"kass":850000},"2026-10-15":{"rev":1110190,"disc":14083,"cash":{"zg":30000,"ks":39955,"ac":11325,"shr":97870,"hbk":95300,"vokz":71500,"hrom":60360,"oral":36510,"ast":28100},"bn":{"zg":105540,"ks":93750,"ac":82190,"shr":168290,"hbk":33140,"vokz":42352,"hrom":47390,"oral":52440,"ast":114530},"hal":100180,"acc":{"din":75508,"ayz":1363000,"ayt":839000,"apa":447400,"pet":1665000},"divEnd":764028,"expLegacy":715584,"kass":460000,"payLegacy":815000},"2026-10-16":{"rev":873380,"disc":6718,"cash":{"zg":65330,"ks":66055,"ac":77195,"shr":148870,"hbk":111560,"vokz":81550,"hrom":77420,"oral":52170,"ast":39570},"bn":{"zg":38852,"ks":79940,"ac":58370,"shr":120630,"hbk":31020,"vokz":57630,"hrom":33300,"oral":33630,"ast":98420},"hal":71130,"acc":{"din":187668,"ayz":967000,"ayt":958000,"apa":510000,"pet":167000},"divEnd":224747,"payLegacy":2208000},"2026-10-17":{"rev":1180380,"disc":16105,"cash":{"zg":143150,"ks":109065,"ac":108835,"shr":230330,"hbk":121900,"vokz":103150,"hrom":93150,"oral":87130,"ast":63670},"bn":{"zg":69330,"ks":101007,"ac":70190,"shr":154780,"hbk":99160,"vokz":83070,"hrom":35780,"oral":85820,"ast":57370},"hal":68930,"acc":{"din":323146,"ayz":1170000,"ayt":1111000,"apa":614000,"pet":419000},"divEnd":224747,"expLegacy":5600}};
+let fdoc=null,lastJson="",cloudOk=false;
+function setStatus(t,ok){const e=document.getElementById("cl");if(e){e.textContent=t;e.style.color=ok===true?"var(--ok)":ok===false?"var(--bad)":"var(--faint)"}}
+function saveLocal(){try{localStorage.setItem(LKEY,JSON.stringify(docs))}catch(e){}}
+async function pushCloud(){
+  saveLocal();
+  if(!fdoc||!firebase.auth().currentUser){setStatus("Сохранено только на этом устройстве — нет связи с облаком",false);return}
+  const json=JSON.stringify(docs);lastJson=json;
+  await fdoc.set({json,updated:new Date().toISOString()});
+  setStatus("☁️ Сохранено в облако · "+new Date().toLocaleTimeString("ru-RU"),true);
+}
+db={doc(path){const id=path.split("/")[1];return{
+  async set(o){docs[id]=JSON.parse(JSON.stringify(o));await pushCloud()},
+  async delete(){delete docs[id];await pushCloud();render()}}}};
+function applyRemote(json){if(!json||json===lastJson)return;try{docs=JSON.parse(json);lastJson=json;saveLocal();if(!sheet.classList.contains("on"))render()}catch(e){}}
+async function gateLogin(){
+  const pw=document.getElementById("gate-pw").value,err=document.getElementById("gate-err");err.textContent="";if(!pw)return;
+  try{await firebase.auth().signInWithEmailAndPassword(CLOUD_EMAIL,pw);document.getElementById("gate-pw").value=""}
+  catch(e){err.textContent=/wrong-password|invalid-credential|invalid-login/.test(e.code||"")?"Неверный пароль.":"Ошибка: "+e.message}
+}
+(function init(){
+  try{const r=localStorage.getItem(LKEY);docs=r?JSON.parse(r):JSON.parse(JSON.stringify(SEED))}catch(e){docs=JSON.parse(JSON.stringify(SEED))}
+  loaded=true;sel=-1;render();
+  if(typeof firebase==="undefined"){setStatus("Облако не загрузилось — работаю с копией на устройстве",false);return}
+  firebase.initializeApp(FIREBASE_CONFIG);
+  fdoc=firebase.firestore().collection("topglass").doc("dengi");
+  firebase.auth().onAuthStateChanged(u=>{
+    if(!u){firebase.auth().signInAnonymously().catch(e=>setStatus("Нет связи с облаком: "+e.message,false));return}
+    fdoc.onSnapshot(s=>{
+      document.getElementById("gate").classList.add("hidden");
+      if(!cloudOk){cloudOk=true;setStatus("☁️ Облако подключено",true)}
+      if(s.exists)applyRemote(s.data().json);
+      else pushCloud().catch(e=>setStatus("Не удалось записать в облако: "+e.message,false));
+    },e=>{
+      if(e.code==="permission-denied"&&u.isAnonymous){document.getElementById("gate").classList.remove("hidden");return}
+      setStatus("Облако недоступно: "+e.message+" — работаю с копией на устройстве",false);
+    });
+  });
+})();
+</script>
+</body></html>
