@@ -147,6 +147,8 @@ td:first-child{font-weight:550}
 
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const STORES=[["zg","ЖГ"],["ks","КС"],["ac","АЦ"],["shr","ШР"],["hbk","ХБК"],["vokz","ВОКЗ"],["hrom","ХРОМ"],["oral","ОРАЛ"],["ast","АСТ"]];
 const SN=Object.fromEntries(STORES);
@@ -286,6 +288,10 @@ function renderDay(v,x){
     <div class="bar"><i style="width:${w(x.cashT)};background:var(--c1)"></i><i style="width:${w(x.accT)};background:var(--c2)"></i><i style="width:${w(x.divEnd)};background:var(--c3)"></i></div>
     <div class="legend"><span><i class="dot" style="background:var(--c1)"></i>Наличка <b class="num">${fmt(x.cashT)}</b></span><span><i class="dot" style="background:var(--c2)"></i>Счета <b class="num">${fmt(x.accT)}</b></span><span><i class="dot" style="background:var(--c3)"></i>Дивиденды <b class="num">${fmt(x.divEnd)}</b></span></div>
   </div>
+  ${(()=>{const f=flow(x);return sec("exp","🧾","Расходы за день",fmt(f.spent),unexpChip(f.unexp).replace('class="chip','class="chip sm'),
+    `<div class="rows">${R("Деньги на начало",fmt(f.start))}${R("+ Выручка",fmt(f.R))}${R("− Деньги на конец",fmt(f.end))}${R("Расходы всего",fmt(f.spent),"tot")}</div>
+    <div class="h4">Из чего</div><div class="rows">${R("Со счетов",fmt(f.acc))}${R("Из дивидендов",fmt(f.div))}${R("Скидки",fmt(f.disc))}${R("Комиссия банка",fmt(f.comm))}${R("Не объяснено",unexpChip(f.unexp))}</div>
+    <div class="formula">«Не объяснено» — деньги ушли, а расход нигде не записан (если плюс — денег больше, чем должно быть).</div>`)})()}
   ${sec("rev","📈","Выручка за день",x.rev===null?"—":fmt(x.rev),chipCheck(x.check),revBody)}
   ${sec("cash","💵","Наличка в кассах",fmt(x.cashT),`<span class="chip n">${sgn(x.cashT-x.pCashT)}</span>`,cashBody)}
   ${sec("acc","🏦","Счета всего",fmt(x.accT),chipCheck(x.accVsBn),accBody)}
@@ -522,7 +528,7 @@ async function gateLogin(){
       if(s.exists)applyRemote(s.data().json);
       else pushCloud().catch(e=>setStatus("Не удалось записать в облако: "+e.message,false));
     },e=>{
-      if(e.code==="permission-denied"&&u.isAnonymous){document.getElementById("gate").classList.remove("hidden");return}
+      if(e.code==="permission-denied"){setStatus("Облако не пускает запись — данные сохраняются только на этом устройстве",false);return}
       setStatus("Облако недоступно: "+e.message+" — работаю с копией на устройстве",false);
     });
   });
